@@ -1,2 +1,2 @@
-# 123
+# Au Plus
 A simple calculator.
