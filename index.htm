@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport"content="initial-scale=1,maximum-scale=1,user-scalable=no,width=device-width">
+		<link rel="icon"href="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+		<title>123</title>
+		<style>
+			@font-face{
+				font-family:'Font';
+				src:url('https://fonts.gstatic.com/s/pressstart2p/v9/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2');
+			}
+			article{
+				left:50%;
+				position:fixed;
+				text-align:right;
+				top:50%;
+				transform:translate(-50%,-50%);
+			}
+			body{
+				background-color:#222;
+				color:Chartreuse;
+				font-family:'Font',monospace;
+				font-size:36pt;
+			}
+			html{
+				cursor:cell;
+				user-select:none;
+			}
+		</style>
+	</head>
+	<body oncontextmenu="return false">
+		<main>
+			<article id="lcd">0</article>
+		</main>
+		<script>
+			'use strict';
+			const lcd=document.getElementById('lcd');
+			document.body.addEventListener('keydown',(e)=>{
+				console.log(e.key);
+				switch(e.key){
+					case'+':
+					case'-':
+					case'*':
+					case'/':
+					case'.':
+					case'0':
+					case'1':
+					case'2':
+					case'3':
+					case'4':
+					case'5':
+					case'6':
+					case'7':
+					case'8':
+					case'9':
+					case'(':
+					case')':
+						if(lcd.textContent=='0'){
+							lcd.textContent=e.key;
+						}else{
+							lcd.textContent+=e.key;
+						}
+						break;
+					case' ':
+						lcd.textContent='0';
+						break;
+					case'Backspace':
+						lcd.textContent=lcd.textContent.substring(0,lcd.textContent.length-1);
+						if(lcd.textContent==''){
+							lcd.textContent='0';
+						}
+						break;
+					case'Enter':
+						lcd.textContent=eval(lcd.textContent);
+						break;
+				}
+			});
+		</script>
+	</body>
+</html>
