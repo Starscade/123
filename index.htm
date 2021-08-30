@@ -4,45 +4,104 @@
 		<meta charset="utf-8">
 		<meta name="viewport"content="initial-scale=1,maximum-scale=1,user-scalable=no,width=device-width">
 		<link rel="icon"href="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
-		<title>123</title>
+		<title>+ − × ÷ </title>
 		<style>
 			@font-face{
 				font-family:'Font';
 				src:url('https://fonts.gstatic.com/s/pressstart2p/v9/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2');
 			}
-			article{
-				left:50%;
-				position:fixed;
-				text-align:right;
-				top:50%;
-				transform:translate(-50%,-50%);
+			::-webkit-scrollbar{
+				height:var(--pt);
+				width:(--pt);
+			}::-webkit-scrollbar-thumb,::selection{
+				background-color:currentColor;
+			}
+			:root{
+				--bg:Black;
+				--fg:Chartreuse;
+				--pt:12pt;
+				scrollbar-color:currentColor var(--bg);
+				scrollbar-width:thin;
 			}
 			body{
-				background-color:Black;
-				color:Chartreuse;
+				background-color:var(--bg);
+				color:var(--fg);
 				font-family:'Font',monospace;
-				font-size:36pt;
+				font-size:24pt;
+				margin:0;
+				text-align:center;
+			}
+			button{
+				background-color:var(--fg);
+				border:1pt solid;
+				box-shadow:inset 0 4px var(--bg),inset 0 -4px var(--bg),inset 4px 0 var(--bg),inset -4px 0 var(--bg),;
+				color:var(--bg);
+				font-family:inherit;
+				font-size:inherit;
+				height:100%;
+				vertical-align:top;
+				width:25%;
+			}button:active{
+				background-color:var(--bg);
+				color:var(--fg);
+			}button:focus{
+				outline:none;
 			}
 			html{
 				cursor:cell;
 				user-select:none;
 			}
+			#lcd{
+				overflow-x:scroll;
+				padding:1em;
+			}#lcd,#pad{
+				max-width:100%;
+				text-align:right;
+			}
+			#pad{
+				height:100vw;
+			}#pad div{
+				height:25%;
+			}
+			@media(orientation:landscape){
+				article{
+					left:50%;
+					max-width:80vw;
+					position:fixed;
+					top:50%;
+					transform:translate(-50%,-50%);
+				}
+				#pad{
+					display:none;
+				}
+			}
 		</style>
 	</head>
 	<body oncontextmenu="return false">
 		<main>
-			<article id="lcd">0</article>
+			<article>
+				<div id="lcd">0</div>
+				<div id="pad">
+					<div><button>7</button><button>8</button><button>9</button><button>÷</button></div>
+					<div><button>4</button><button>5</button><button>6</button><button>×</button></div>
+					<div><button>1</button><button>2</button><button>3</button><button>-</button></div>
+					<div><button><sup>+</sup>/<sub>-</sub></button><button>0</button><button>.</button><button>+</button></div>
+					<div><button>x<sup>n</sup></button><button><small>DEL</small></button><button>C</button><button>=</button></div>
+				</div>
+			</article>
 		</main>
 		<script>
 			'use strict';
 			const lcd=document.getElementById('lcd');
-			document.body.addEventListener('keydown',(e)=>{
-				console.log(e.key);
-				switch(e.key){
+			const keys=[...document.getElementsByTagName('button')];
+			let M='';
+			function aerith(txt){
+				switch(txt){
 					case'+':
 					case'-':
-					case'*':
-					case'/':
+					case'*':case'×':
+					case'/':case'÷':
+					case'^':
 					case'.':
 					case'0':
 					case'1':
@@ -56,25 +115,57 @@
 					case'9':
 					case'(':
 					case')':
+						txt=txt.replace(/\*/,'×').replace(/\//,'÷');
+						console.log('N: '+txt);
 						if(lcd.textContent=='0'){
-							lcd.textContent=e.key;
+							lcd.textContent=txt;
 						}else{
-							lcd.textContent+=e.key;
+							if(txt.match(/\+|-|×|÷/)){
+								if(!lcd.textContent.slice(-1).match(/\+|-|×|÷/)){
+									lcd.textContent+=txt;
+								}
+							}else{
+								lcd.textContent+=txt;
+							}
 						}
 						break;
-					case' ':
+					case'+/-':
+						lcd.textContent=eval(lcd.textContent*-1);
+						break;
+					case'xn':
+						lcd.textContent+='^';
+						break;
+					case' ':case'C':
 						lcd.textContent='0';
 						break;
-					case'Backspace':
+					case'Backspace':case'DEL':
 						lcd.textContent=lcd.textContent.substring(0,lcd.textContent.length-1);
 						if(lcd.textContent==''){
 							lcd.textContent='0';
 						}
 						break;
-					case'Enter':
-						lcd.textContent=eval(lcd.textContent);
+					case'Enter':case'=':
+						txt=lcd.textContent.replace(/÷/,'/').replace(/×/,'*').replace(/\^/,'**');
+						const op=txt.replace(/\.*-*\d*(\+|-|\*|\/)(\d*)/,'$1$2');
+						let aerith='';
+						if(op[0].match(/\d|\.|\(|\)/)){
+							aerith=txt+M;
+						}else{
+							M=op;
+							aerith=txt;
+						}
+						console.log('M: '+M);
+						lcd.textContent=eval(aerith);
 						break;
 				}
+			}
+			keys.forEach((butt,i)=>{
+				butt.onpointerdown=(e)=>{
+					aerith(butt.textContent);
+				}
+			});
+			document.body.addEventListener('keydown',e=>{
+				aerith(e.key);
 			});
 		</script>
 	</body>
