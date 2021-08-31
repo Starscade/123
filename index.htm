@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"oncontextmenu="return false">
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport"content="initial-scale=1,maximum-scale=1,user-scalable=no,width=device-width">
@@ -15,31 +15,36 @@
 				src:url('https://fonts.gstatic.com/s/pressstart2p/v9/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2');
 			}
 			::-webkit-scrollbar{
-				height:var(--pt);
-				width:(--pt);
+				height:calc(var(--pt)/3);
+				width:calc(var(--pt)/3);
 			}::-webkit-scrollbar-thumb,::selection{
 				background-color:currentColor;
 			}
 			:root{
 				--bg:Black;
 				--fg:Chartreuse;
-				--pt:12pt;
+				--pt:7vmin;
 				scrollbar-color:currentColor var(--bg);
 				scrollbar-width:thin;
+			}
+			article{
+				height:100vh;
+			}article,#pad{
+				display:flex;
+				flex-direction:column;
 			}
 			body{
 				background-color:var(--bg);
 				color:var(--fg);
 				font-family:'Font',monospace;
-				font-size:24pt;
+				font-size:var(--pt);
 				margin:0;
-				text-align:center;
 			}
 			button{
 				background-color:var(--fg);
-				border:1pt solid;
-				box-shadow:inset 0 4px var(--bg),inset 0 -4px var(--bg),inset 4px 0 var(--bg),inset -4px 0 var(--bg),;
+				border:2pt solid;
 				color:var(--bg);
+				cursor:pointer;
 				font-family:inherit;
 				font-size:inherit;
 				height:100%;
@@ -47,6 +52,7 @@
 				width:25%;
 			}button:active{
 				background-color:var(--bg);
+				border-color:transparent;
 				color:var(--fg);
 			}button:focus{
 				outline:none;
@@ -56,40 +62,35 @@
 				user-select:none;
 			}
 			#lcd{
+				font-size:8vh;
+				height:25%;
 				overflow-x:scroll;
-				padding:1em;
-			}#lcd,#pad{
-				max-width:100%;
+				padding:1.5em 1em 0 1em;
 				text-align:right;
+				white-space:nowrap;
+			}
+			#M{
+				padding:.5em;
+				position:fixed;
 			}
 			#pad{
-				height:100vw;
+				height:100%;
 			}#pad div{
-				height:25%;
-			}
-			@media(orientation:landscape){
-				article{
-					left:50%;
-					max-width:80vw;
-					position:fixed;
-					top:50%;
-					transform:translate(-50%,-50%);
-				}
-				#pad{
-					display:none;
-				}
+				flex-grow:1;
 			}
 		</style>
 	</head>
-	<body oncontextmenu="return false">
+	<body>
 		<main>
+			<div id="M"></div>
 			<article>
 				<div id="lcd">0</div>
 				<div id="pad">
+					<div><button>MC</button><button style="width:75%">?</button></div>
 					<div><button>7</button><button>8</button><button>9</button><button>÷</button></div>
 					<div><button>4</button><button>5</button><button>6</button><button>×</button></div>
 					<div><button>1</button><button>2</button><button>3</button><button>-</button></div>
-					<div><button><sup>+</sup>/<sub>-</sub></button><button>0</button><button>.</button><button>+</button></div>
+					<div><button>±</button><button>0</button><button>.</button><button>+</button></div>
 					<div><button>x<sup>n</sup></button><button><small>DEL</small></button><button>C</button><button>=</button></div>
 				</div>
 			</article>
@@ -98,14 +99,31 @@
 			'use strict';
 			const lcd=document.getElementById('lcd');
 			const keys=[...document.getElementsByTagName('button')];
-			let M='';
-			function aerith(txt){
-				switch(txt){
+			const M=document.getElementById('M');
+			let R='';
+			let E='';
+			let X='';
+			function aerith(){
+				const e=E.replace(/÷/,'/').replace(/×/,'*').replace(/\^/,'**');
+				const x=X.replace(/÷/,'/').replace(/×/,'*').replace(/\^/,'**');
+				let v='';
+				if(lcd.textContent==E){
+					v=String(eval(e+x+R));
+				}else{
+					v=String(eval(e));
+				}
+				v.replace(/\*\*/,'^').replace(/\*/,'×').replace(/\//,'÷');
+				lcd.textContent=v;
+				E=v;
+				M.textContent='M';
+			}
+			function kee(I){
+				switch(I){
 					case'+':
 					case'-':
 					case'*':case'×':
 					case'/':case'÷':
-					case'^':
+					case'^':case'xn':
 					case'.':
 					case'0':
 					case'1':
@@ -117,59 +135,90 @@
 					case'7':
 					case'8':
 					case'9':
-					case'(':
-					case')':
-						txt=txt.replace(/\*/,'×').replace(/\//,'÷');
-						console.log('N: '+txt);
-						if(lcd.textContent=='0'){
-							lcd.textContent=txt;
-						}else{
-							if(txt.match(/\+|-|×|÷/)){
-								if(!lcd.textContent.slice(-1).match(/\+|-|×|÷/)){
-									lcd.textContent+=txt;
-								}
+					case'?':
+						I=I.replace(/\*/,'×').replace(/\//,'÷').replace(/xn/,'^').replace(/\?/,Math.floor(Math.random()*10));
+						console.log('I: '+I);
+						if(I.match(/\+|-|×|÷|\^/)){
+							if(E.slice(-1).match(/\+|-|×|÷|\^/)){
+								E=E.substr(0,E.length-1)+I;
 							}else{
-								lcd.textContent+=txt;
+								E+=I;
+							}
+							X=I;
+							lcd.textContent=I;
+						}else{
+							if(lcd.textContent=='0'){
+								lcd.textContent=I;
+							}else{
+								if(lcd.textContent.match(/\+|-|×|÷|\^/)){
+									lcd.textContent=I;
+								}else{
+									lcd.textContent+=I;
+								}
+							}
+							E+=I;
+							R=lcd.textContent;
+						}
+						break;
+					case'±':case'Tab':
+						if(lcd.textContent!=X){
+							if(lcd.textContent[0]=='-'){
+								lcd.textContent=lcd.textContent.slice(1);
+							}else{
+								lcd.textContent='-'+lcd.textContent;
 							}
 						}
 						break;
-					case'+/-':
-						lcd.textContent=eval(lcd.textContent*-1);
-						break;
-					case'xn':
-						lcd.textContent+='^';
-						break;
 					case' ':case'C':
+						if(lcd.textContent=='0'){
+							mc();
+						}
 						lcd.textContent='0';
+						E='';
+						break;
+					case'MC':
+						mc();
 						break;
 					case'Backspace':case'DEL':
 						lcd.textContent=lcd.textContent.substring(0,lcd.textContent.length-1);
+						if(!lcd.textContent=='0'){
+							E=E.substring(0,E.length-1);
+						}
 						if(lcd.textContent==''){
 							lcd.textContent='0';
 						}
 						break;
 					case'Enter':case'=':
-						txt=lcd.textContent.replace(/÷/,'/').replace(/×/,'*').replace(/\^/,'**');
-						const op=txt.replace(/\.*-*\d*(\+|-|\*|\/)(\d*)/,'$1$2');
-						let aerith='';
-						if(op[0].match(/\d|\.|\(|\)/)){
-							aerith=txt+M;
+						if(lcd.textContent=='Error'){
+							lcd.textContent='0';
 						}else{
-							M=op;
-							aerith=txt;
+							try{
+								aerith();
+							}catch(e){
+								lcd.textContent='Error';
+								mc();
+							}
 						}
-						console.log('M: '+M);
-						lcd.textContent=eval(aerith);
 						break;
 				}
+				console.log('E: '+E+"\n"+'X: '+X+"\n"+'R: '+R);
+			}
+			function mc(){
+				R='';
+				E='';
+				X='';
+				M.textContent='';
 			}
 			keys.forEach((butt,i)=>{
 				butt.onpointerdown=(e)=>{
-					aerith(butt.textContent);
+					kee(butt.textContent);
 				}
 			});
 			document.body.addEventListener('keydown',e=>{
-				aerith(e.key);
+				if(e.key==' '){
+					e.preventDefault();
+				}
+				kee(e.key);
 			});
 		</script>
 	</body>
